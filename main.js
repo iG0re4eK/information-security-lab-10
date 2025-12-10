@@ -2,344 +2,430 @@ const p = 71;
 const g = 7;
 const a = 26;
 const n = p - 1;
-const B = 4;
-const maxEquations = 5;
+const t = 4;
+let c = 1;
 
-function step1(B) {
+function isPrime(num) {
+  if (num < 2) return false;
+  for (let i = 2; i <= Math.sqrt(num); i++) {
+    if (num % i === 0) return false;
+  }
+  return true;
+}
+
+function step1(t, count = 100) {
+  console.log("\n--- Шаг 1: Факторной база ---");
+
   const factorBase = [];
 
-  function isPrime(num) {
-    if (num < 2) return false;
-    for (let i = 2; i <= Math.sqrt(num); i++) {
-      if (num % i === 0) return false;
-    }
-    return true;
-  }
-
-  for (let i = 2; i <= B; i++) {
+  for (let i = 2; i <= count; i++) {
     if (isPrime(i)) {
       factorBase.push(i);
     }
   }
 
-  return factorBase;
+  console.log("Факторная база:", factorBase.slice(0, t).join(" "));
+
+  return factorBase.slice(0, t);
 }
 
-function modPow(a, x, n) {
-  let result = 1;
-  let base = a % n;
-  let exp = x;
+function sumMod(a, x, n) {
+  let p = 1;
+  let i = x;
 
-  while (exp > 0) {
-    if (exp % 2 === 1) {
-      result = (result * base) % n;
+  while (i > 0) {
+    const s = i % 2;
+
+    if (s === 1) {
+      p = (p * a) % n;
     }
-    base = (base * base) % n;
-    exp = Math.floor(exp / 2);
+
+    a = (a * a) % n;
+    i = (i - s) / 2;
   }
+
+  return p < 0 ? p + n : p;
+}
+
+function step2(n, g) {
+  const k = Math.floor(Math.random() * n);
+
+  const g_k = sumMod(g, k, p);
+
+  return { k, g_k };
+}
+
+function factorBase(g_k, s) {
+  if (g_k <= 1) return null;
+
+  let result = {};
+  let temp = g_k;
+
+  for (const el_s of s) {
+    let count = 0;
+
+    while (temp % el_s === 0) {
+      temp /= el_s;
+      count++;
+    }
+
+    if (count > 0) {
+      result[el_s] = count;
+    }
+  }
+
+  return temp === 1 ? result : null;
+}
+
+function step3(g, s, n, p) {
+  let result = [];
+
+  let { k, g_k } = step2(n, g, p);
+  console.log(
+    `\n--- Шаг 2: Выбрать случайное k: 0<=k<${n} и вычислить ${g}^${k} mod ${p} ---`
+  );
+  console.log(`k: ${k} g_k: ${g_k}`);
+
+  const factorBaseResult = factorBase(g_k, s);
+
+  if (factorBaseResult) {
+    console.log(
+      `\n--- Шаг 3: Попытка разложить по факторной базе ${g}^${k} mod ${p} ---`
+    );
+    result.push({ k: k, g_k: g_k, factorBase: factorBaseResult });
+  } else {
+    return step3(g, s, n, p);
+  }
+
+  result.forEach((el) => {
+    let text = "";
+    text += `k: ${el.k} \t g^k: ${el.g_k} \t`;
+    const factors = Object.entries(el.factorBase)
+      .map(([prime, power]) => `${prime}^${power}`)
+      .join(" * ");
+    text += factors;
+    console.log(text);
+  });
 
   return result;
 }
 
-function modInverse(a, m) {
-  let [old_r, r] = [a, m];
-  let [old_s, s] = [1, 0];
-  let [old_t, t] = [0, 1];
+function step4(resultStep3, s, n) {
+  console.log(
+    `\n=== ШАГ 4: Логарифмируем обе части получившегося выражения, получаем ===`
+  );
+  console.log(`k ≡ ∑ a_i * log_g(p_i) mod ${n} (*)`);
+  console.log(`В этом выражении неизвестными являются логарифмы`);
+  console.log(`Это сравнение с t неизвестными следует запомнить`);
 
-  while (r !== 0) {
-    const quotient = Math.floor(old_r / r);
-    [old_r, r] = [r, old_r - quotient * r];
-    [old_s, s] = [s, old_s - quotient * s];
-    [old_t, t] = [t, old_t - quotient * t];
-  }
-
-  return ((old_s % m) + m) % m;
-}
-
-function step2(number, factorBase) {
-  const factorization = new Map();
-  let temp = number;
-
-  for (const prime of factorBase) {
-    let count = 0;
-    while (temp % prime === 0) {
-      count++;
-      temp = Math.floor(temp / prime);
-    }
-    if (count > 0) {
-      factorization.set(prime, count);
-    }
-  }
-
-  return temp === 1 ? factorization : null;
-}
-
-function step3(g, p, n, factorBase, maxEquations) {
-  const relations = [];
-  const seenK = new Set();
-
-  console.log("Поиск линейных соотношений...");
-
-  while (relations.length < maxEquations) {
-    const k = Math.floor(Math.random() * (n - 2)) + 1;
-
-    if (seenK.has(k)) continue;
-    seenK.add(k);
-
-    const gk = modPow(g, k, p);
-    const factors = step2(gk, factorBase);
-
-    if (factors !== null) {
-      relations.push({
-        k: k,
-        gk: gk,
-        factors: factors,
-      });
-      console.log(
-        `Найдено соотношение ${relations.length}: ${g}^${k} = ${gk} (mod ${p})`
-      );
-
-      const factorsStr = Array.from(factors.entries())
-        .map(([p, e]) => `${p}^${e}`)
-        .join(" * ");
-      console.log(`  Факторизация: ${gk} = ${factorsStr}`);
-    }
-  }
-
-  return relations;
-}
-
-function step4(relations, factorBase, n) {
   const matrix = [];
   const vector = [];
 
-  for (const relation of relations) {
-    const row = [];
+  resultStep3.forEach((item, idx) => {
+    const { k, g_k, factorBase } = item;
 
-    for (const prime of factorBase) {
-      const exponent = relation.factors.get(prime) || 0;
-      row.push(exponent % n);
-    }
+    const row = s.map((p) => factorBase[p] || 0);
 
     matrix.push(row);
-    vector.push(relation.k % n);
-  }
+    vector.push(sumMod(k, 1, n));
+
+    const factors = Object.entries(factorBase)
+      .map(([p, e]) => `${p}^${e}`)
+      .join(" * ");
+
+    const equation =
+      s
+        .map((p, j) => {
+          const coeff = row[j];
+          return coeff ? `${coeff}·log_${g}(${p})` : null;
+        })
+        .filter((x) => x)
+        .join(" + ") || "0";
+
+    console.log(`(${idx + 1}) ${g}^${k} ≡ ${g_k} = ${factors}`);
+    console.log(`    ${equation} ≡ ${k} (mod ${n})`);
+  });
+
+  console.log("matrix:");
+  matrix.forEach((row) => {
+    console.log(row.join("\t"));
+  });
+  console.log(" vector: ");
+  console.log(vector.join("\n"));
 
   return { matrix, vector };
 }
 
-function step5(matrix, vector, n) {
-  console.log("Решение системы уравнений...");
+function step5(t, c, currentResultStep3) {
+  console.log(
+    `Если сравнений вида (*), полученных на Шаг 4, меньше, чем t + c, то вернуться на Шаг 2`
+  );
+  console.log(`t = ${t}, c = ${c}, нужно t+c = ${t + c} уравнений`);
+  console.log(`Имеем уравнений: ${currentResultStep3.length}`);
 
-  const augmentedMatrix = matrix.map((row, i) => [...row, vector[i]]);
-  const rows = augmentedMatrix.length;
-  const cols = matrix[0].length;
+  let step4Result = null;
 
-  console.log(`Размер матрицы: ${rows}x${cols}`);
+  if (currentResultStep3.length < t + c) {
+    const needed = t + c - currentResultStep3.length;
+    console.log(`\n Нужно найти еще ${needed} уравнений.`);
 
-  for (let col = 0; col < cols; col++) {
-    let pivotRow = -1;
-    for (let row = col; row < rows; row++) {
-      if (augmentedMatrix[row][col] % n !== 0) {
-        pivotRow = row;
+    const allEquations = [...currentResultStep3];
+
+    while (allEquations.length < t + c) {
+      const additionalEquations = step3(g, s, n, p);
+      allEquations.push(...additionalEquations);
+      console.log(`Найдено еще уравнение. Всего: ${allEquations.length}`);
+      step4Result = step4(allEquations, s, n);
+    }
+
+    console.log(
+      `\nТеперь имеем ${allEquations.length} уравнений (нужно ${t + c})`
+    );
+
+    return {
+      equations: allEquations,
+      matrix: step4Result.matrix,
+      vector: step4Result.vector,
+      c: c,
+    };
+  } else {
+    console.log(`Можно переходить к решению системы.`);
+    console.log(`Используем только первые ${t + c} уравнений для системы`);
+
+    const equationsToUse = currentResultStep3.slice(0, t + c);
+    step4Result = step4(equationsToUse, s, n);
+
+    return {
+      equations: equationsToUse,
+      matrix: step4Result.matrix,
+      vector: step4Result.vector,
+      c: c,
+    };
+  }
+}
+
+function modInverse(a, m) {
+  a = ((a % m) + m) % m;
+  for (let x = 1; x < m; x++) {
+    if ((a * x) % m === 1) {
+      return x;
+    }
+  }
+  return -1;
+}
+
+function egcd(a, b) {
+  if (b === 0) return [a, 1, 0];
+  const [g, x1, y1] = egcd(b, a % b);
+  return [g, y1, x1 - Math.floor(a / b) * y1];
+}
+
+function solveLinearSystem(modulo, matrix, vector) {
+  const n = matrix.length;
+  const m = matrix[0].length;
+  const mod = modulo;
+
+  let A = matrix.map((row) => [...row]);
+  let b = [...vector];
+
+  console.log(`\nРешаем систему ${n}×${m} по модулю ${mod}`);
+
+  for (let col = 0; col < m && col < n; col++) {
+    let pivot = -1;
+    for (let row = col; row < n; row++) {
+      if (A[row][col] % mod !== 0) {
+        pivot = row;
         break;
       }
     }
 
-    if (pivotRow === -1) continue;
+    if (pivot === -1) continue;
 
-    [augmentedMatrix[col], augmentedMatrix[pivotRow]] = [
-      augmentedMatrix[pivotRow],
-      augmentedMatrix[col],
-    ];
-
-    const pivot = augmentedMatrix[col][col];
-    const invPivot = modInverse(pivot, n);
-
-    for (let j = col; j <= cols; j++) {
-      augmentedMatrix[col][j] = (augmentedMatrix[col][j] * invPivot) % n;
-      if (augmentedMatrix[col][j] < 0) augmentedMatrix[col][j] += n;
+    if (pivot !== col) {
+      [A[col], A[pivot]] = [A[pivot], A[col]];
+      [b[col], b[pivot]] = [b[pivot], b[col]];
     }
 
-    for (let row = 0; row < rows; row++) {
-      if (row !== col && augmentedMatrix[row][col] % n !== 0) {
-        const factor = augmentedMatrix[row][col];
-        for (let j = col; j <= cols; j++) {
-          augmentedMatrix[row][j] =
-            (augmentedMatrix[row][j] - factor * augmentedMatrix[col][j]) % n;
-          if (augmentedMatrix[row][j] < 0) augmentedMatrix[row][j] += n;
+    const inv = modInverse(A[col][col], mod);
+    if (inv === -1) {
+      console.log(`Элемент ${A[col][col]} необратим по модулю ${mod}`);
+      continue;
+    }
+
+    for (let j = col; j < m; j++) {
+      A[col][j] = (A[col][j] * inv) % mod;
+    }
+    b[col] = (b[col] * inv) % mod;
+
+    for (let row = 0; row < n; row++) {
+      if (row !== col && A[row][col] !== 0) {
+        const factor = A[row][col];
+        for (let j = col; j < m; j++) {
+          A[row][j] = (A[row][j] - factor * A[col][j]) % mod;
+          if (A[row][j] < 0) A[row][j] += mod;
         }
+        b[row] = (b[row] - factor * b[col]) % mod;
+        if (b[row] < 0) b[row] += mod;
       }
     }
   }
 
-  const solution = new Array(cols).fill(0);
-  for (let i = 0; i < Math.min(rows, cols); i++) {
-    if (augmentedMatrix[i][i] === 1) {
-      solution[i] = augmentedMatrix[i][cols] % n;
+  const solution = new Array(m).fill(0);
+  const hasSolution = new Array(m).fill(false);
+
+  for (let i = 0; i < m; i++) {
+    let nonZeroRow = -1;
+    for (let j = 0; j < n; j++) {
+      if (A[j][i] !== 0) {
+        if (nonZeroRow === -1) {
+          nonZeroRow = j;
+        } else {
+          console.log(`Конфликт для переменной x${i}`);
+          return null;
+        }
+      }
+    }
+
+    if (nonZeroRow !== -1) {
+      solution[i] = b[nonZeroRow];
+      hasSolution[i] = true;
     }
   }
 
-  return solution;
+  return { solution, hasSolution };
 }
 
-function step6(solution, factorBase, g, p) {
-  console.log("\nПроверка найденных логарифмов:");
-  const logs = new Map();
+function step6(matrix, vector, n, s, g) {
+  console.log(`\n=== ШАГ 6: Решение системы уравнений ===`);
 
-  for (let i = 0; i < factorBase.length; i++) {
-    const prime = factorBase[i];
-    const log = solution[i];
-    logs.set(prime, log);
+  const neededEquations = t + 1;
 
-    const left = modPow(g, log, p);
-    const right = prime % p;
+  if (matrix.length < neededEquations) {
     console.log(
-      `log_${g}(${prime}) = ${log}, проверка: ${g}^${log} mod ${p} = ${left}, ожидалось: ${right}`
+      `Нужно больше уравнений! Требуется: ${neededEquations}, есть: ${matrix.length}`
     );
+    return null;
   }
+
+  const A = matrix.slice(0, neededEquations);
+  const b = vector.slice(0, neededEquations);
+
+  const result = solveLinearSystem(n, A, b);
+
+  if (!result) {
+    console.log("Система не имеет решения!");
+    return null;
+  }
+
+  console.log("\nНайденные логарифмы элементов факторной базы:");
+  const logs = {};
+  for (let i = 0; i < s.length; i++) {
+    if (result.hasSolution[i]) {
+      logs[s[i]] = result.solution[i];
+      console.log(`log_${g}(${s[i]}) ≡ ${result.solution[i]} (mod ${n})`);
+    } else {
+      console.log(`log_${g}(${s[i]}) — не определен`);
+    }
+  }
+
+  console.log(logs);
 
   return logs;
 }
 
-function step7(a, g, p, n, factorBase, logs) {
-  console.log("\nПоиск подходящего k для a*g^{-k}...");
+function step7(n, g, p, a) {
+  const k = Math.floor(Math.random() * n);
 
-  let attempts = 0;
-  const maxAttempts = 10000;
+  const ag_k = sumMod(a * sumMod(g, k, p), 1, p);
 
-  while (attempts < maxAttempts) {
-    attempts++;
-    const k = Math.floor(Math.random() * (n - 2)) + 1;
-
-    const gInvK = modPow(modInverse(g, p), k, p);
-    const value = (a * gInvK) % p;
-
-    const factors = step2(value, factorBase);
-
-    if (factors !== null) {
-      console.log(`Найдено на попытке ${attempts}: k = ${k}`);
-      console.log(
-        `a * g^{-${k}} = ${a} * ${modInverse(g, p)}^${k} = ${value} (mod ${p})`
-      );
-
-      const factorsStr = Array.from(factors.entries())
-        .map(([p, e]) => `${p}^${e}`)
-        .join(" * ");
-      console.log(`Факторизация: ${value} = ${factorsStr}`);
-
-      return { k: k, value: value, factors: factors };
-    }
-  }
-
-  throw new Error("Не удалось найти подходящий k");
+  return { k, ag_k };
 }
 
-function step8(logs, factors, k, n) {
-  console.log("\nВычисление логарифма целевого элемента:");
+function step8(g, s, n, p, a) {
+  let result = [];
 
-  let logH = k % n;
-  console.log(`Начальное значение: log(a) = k = ${k}`);
-
-  for (const [prime, exponent] of factors.entries()) {
-    const logPrime = logs.get(prime);
-    if (logPrime === undefined) {
-      throw new Error(`Не найден логарифм для простого числа ${prime}`);
-    }
-
-    const contribution = (logPrime * exponent) % n;
-    logH = (logH + contribution) % n;
-    console.log(
-      `Добавляем log(${prime}) * ${exponent} = ${logPrime} * ${exponent} = ${contribution}`
-    );
-    console.log(`Текущее log(a) = ${logH}`);
-  }
-
-  return logH;
-}
-
-function step9(g, a, p, logH) {
-  console.log("\nПроверка результата:");
-
-  const left = modPow(g, logH, p);
-  console.log(`Вычислено: ${g}^${logH} mod ${p} = ${left}`);
-  console.log(`Ожидается: a = ${a}`);
-
-  if (left === a % p) {
-    console.log(`✓ УСПЕХ: log_${g}(${a}) mod ${p} = ${logH}`);
-    return true;
-  } else {
-    console.log(`✗ ОШИБКА: Проверка не прошла`);
-    return false;
-  }
-}
-
-function main() {
-  console.log("=== АЛГОРИТМ ИНДЕКСНОГО ИСЧИСЛЕНИЯ ===\n");
-  console.log(`Параметры: p=${p}, g=${g}, a=${a}, n=p-1=${n}, B=${B}`);
-  console.log(`Решаем: ${g}^x ≡ ${a} (mod ${p})`);
-
-  console.log("\n--- Шаг 1: Генерация факторной базы ---");
-  const factorBase = step1(B);
-  console.log("Факторная база:", factorBase);
-
-  console.log("\n--- Шаг 2-3: Сбор линейных соотношений ---");
-  const relations = step3(g, p, n, factorBase, maxEquations);
-
-  console.log("\n--- Шаг 4: Построение матрицы системы ---");
-  const { matrix, vector } = step4(relations, factorBase, n);
-  console.log("Матрица коэффициентов:");
-  matrix.forEach((row, i) => {
-    console.log(
-      `  [${row.map((x) => x.toString().padStart(2)).join(", ")}] | ${
-        vector[i]
-      }`
-    );
-  });
-  console.log("Вектор правых частей:", vector);
-
-  console.log("\n--- Шаг 5: Решение системы уравнений ---");
-  const solution = step5(matrix, vector, n);
-  console.log("Решение системы:", solution);
-
-  console.log("\n--- Шаг 6: Проверка логарифмов ---");
-  const logs = step6(solution, factorBase, g, p);
-
-  console.log("\n--- Шаг 7: Поиск подходящего k ---");
-  const foundK = step7(a, g, p, n, factorBase, logs);
-
-  console.log("\n--- Шаг 8: Вычисление log_g(a) ---");
-  const logH = step8(logs, foundK.factors, foundK.k, n);
-
-  console.log("\n--- Шаг 9: Проверка результата ---");
-  const success = step9(g, a, p, logH);
-
-  return { success, logH, factorBase, logs, relations };
-}
-
-try {
-  console.log("=".repeat(60));
-  const result = main();
-  console.log("\n" + "=".repeat(60));
-  console.log("ИТОГОВЫЙ РЕЗУЛЬТАТ:");
-  console.log(`log_${g}(${a}) mod ${p} = ${result.logH}`);
+  let { k, ag_k } = step7(n, g, p, a);
   console.log(
-    `Проверка: ${g}^${result.logH} mod ${p} = ${modPow(g, result.logH, p)}`
+    `\n--- Шаг 7: Выбрать случайное k: 0<=k<${n} и вычислить ${a}*${g}^${k} mod ${p} ---`
+  );
+  console.log(`k: ${k} a*g_k: ${ag_k}`);
+
+  const factorBaseResult = factorBase(ag_k, s);
+
+  if (factorBaseResult) {
+    console.log(
+      `\n--- Шаг 8: Попытка разложить по факторной базе ${g}^${k} mod ${p} ---`
+    );
+    result.push({ k: k, ag_k: ag_k, factorBase: factorBaseResult });
+  } else {
+    return step8(g, s, n, p, a);
+  }
+
+  result.forEach((el) => {
+    let text = "";
+    text += `k: ${el.k} \t a*g^k: ${el.ag_k} \t`;
+    const factors = Object.entries(el.factorBase)
+      .map(([prime, power]) => `${prime}^${power}`)
+      .join(" * ");
+    text += factors;
+    console.log(text);
+  });
+
+  return result;
+}
+
+function step9(a) {
+  console.log(
+    `\n=== ШАГ 9: Логарифмируем обе части последнего равенства, получаем ===`
   );
 
-  console.log("\nДополнительная проверка:");
-  const directCheck = [];
-  for (let x = 0; x < p; x++) {
-    if (modPow(g, x, p) === a) {
-      directCheck.push(x);
-    }
-  }
-  if (directCheck.length > 0) {
-    console.log(`Прямым перебором найдены решения: ${directCheck.join(", ")}`);
-    if (directCheck.includes(result.logH)) {
-      console.log("✓ Наше решение совпадает с одним из правильных!");
-    }
-  }
-} catch (error) {
-  console.error("Ошибка:", error.message);
+  const matrix = [];
+  const vector = [];
+
+  resultStep3.forEach((item, idx) => {
+    const { k, g_k, factorBase } = item;
+
+    const row = s.map((p) => factorBase[p] || 0);
+
+    matrix.push(row);
+    vector.push(sumMod(k, 1, n));
+
+    const factors = Object.entries(factorBase)
+      .map(([p, e]) => `${p}^${e}`)
+      .join(" * ");
+
+    const equation =
+      s
+        .map((p, j) => {
+          const coeff = row[j];
+          return coeff ? `${coeff}·log_${g}(${p})` : null;
+        })
+        .filter((x) => x)
+        .join(" + ") || "0";
+
+    console.log(`(${idx + 1}) ${g}^${k} ≡ ${g_k} = ${factors}`);
+    console.log(`    ${equation} ≡ ${k} (mod ${n})`);
+  });
+
+  console.log("matrix:");
+  matrix.forEach((row) => {
+    console.log(row.join("\t"));
+  });
+  console.log(" vector: ");
+  console.log(vector.join("\n"));
+
+  return { matrix, vector };
 }
+
+const s = step1(t);
+
+let resultStep3 = step3(g, s, n, p);
+
+let { matrix, vector } = step4(resultStep3, s, n, g);
+
+console.log(`\n=== ШАГ 5: Проверка количества уравнений ===`);
+({ matrix, vector } = step5(t, c, resultStep3));
+
+const logs = step6(matrix, vector, n, s, g);
+
+let resultStep8 = step8(g, s, n, p, a);
