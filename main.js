@@ -1,6 +1,6 @@
-const p = 71;
-const g = 7;
-const a = 26;
+const p = 307;
+const g = 23;
+const a = 229;
 const n = p - 1;
 const t = 4;
 let c = 1;
@@ -47,7 +47,7 @@ function sumMod(a, x, n) {
   return p < 0 ? p + n : p;
 }
 
-function step2(n, g) {
+function step2(n, g, p) {
   const k = Math.floor(Math.random() * n);
 
   const g_k = sumMod(g, k, p);
@@ -143,7 +143,7 @@ function step4(resultStep3, s, n) {
         .join(" + ") || "0";
 
     console.log(`(${idx + 1}) ${g}^${k} ≡ ${g_k} = ${factors}`);
-    console.log(`    ${equation} ≡ ${k} (mod ${n})`);
+    console.log(`\t${equation} ≡ ${k} (mod ${n})`);
   });
 
   console.log("matrix:");
@@ -156,7 +156,7 @@ function step4(resultStep3, s, n) {
   return { matrix, vector };
 }
 
-function step5(t, c, currentResultStep3) {
+function step5(s, t, c, currentResultStep3) {
   console.log(
     `Если сравнений вида (*), полученных на Шаг 4, меньше, чем t + c, то вернуться на Шаг 2`
   );
@@ -374,58 +374,65 @@ function step8(g, s, n, p, a) {
   return result;
 }
 
-function step9(a) {
+function step9(resultStep8, s, n, g, logs) {
   console.log(
     `\n=== ШАГ 9: Логарифмируем обе части последнего равенства, получаем ===`
   );
 
-  const matrix = [];
-  const vector = [];
+  let log_a = null;
 
-  resultStep3.forEach((item, idx) => {
-    const { k, g_k, factorBase } = item;
+  resultStep8.forEach((item, idx) => {
+    const { k, ag_k, factorBase } = item;
 
     const row = s.map((p) => factorBase[p] || 0);
 
-    matrix.push(row);
-    vector.push(sumMod(k, 1, n));
+    let rightSide = 0;
+    for (let j = 0; j < s.length; j++) {
+      if (row[j] > 0) {
+        rightSide = (rightSide + row[j] * logs[s[j]]) % n;
+      }
+    }
 
-    const factors = Object.entries(factorBase)
-      .map(([p, e]) => `${p}^${e}`)
-      .join(" * ");
+    log_a = (rightSide - k) % n;
+    if (log_a < 0) log_a += n;
 
-    const equation =
-      s
-        .map((p, j) => {
-          const coeff = row[j];
-          return coeff ? `${coeff}·log_${g}(${p})` : null;
-        })
-        .filter((x) => x)
-        .join(" + ") || "0";
-
-    console.log(`(${idx + 1}) ${g}^${k} ≡ ${g_k} = ${factors}`);
-    console.log(`    ${equation} ≡ ${k} (mod ${n})`);
+    console.log(`log_${g}(${a}) ≡ ${rightSide} - ${k} ≡ ${log_a} (mod ${n})`);
   });
 
-  console.log("matrix:");
-  matrix.forEach((row) => {
-    console.log(row.join("\t"));
-  });
-  console.log(" vector: ");
-  console.log(vector.join("\n"));
-
-  return { matrix, vector };
+  return log_a;
 }
 
-const s = step1(t);
+function checkResult(x, g, a, n) {
+  if (Array.isArray(x)) {
+    x = x[0]?.value || x[x.length - 1]?.value;
+  }
+  console.log(`g^${x} = ${sumMod(g, x, p)}; a = ${a}`);
+  console.log(`Проверка: ${sumMod(g, x, p)} ≡ ${a} (mod ${p})`);
+  console.log(`Дискретный логарифм log_${g}(${a}) ≡ ${x} (mod ${n})`);
+}
 
-let resultStep3 = step3(g, s, n, p);
+function init() {
+  const s = step1(t);
 
-let { matrix, vector } = step4(resultStep3, s, n, g);
+  let resultStep3 = step3(g, s, n, p);
 
-console.log(`\n=== ШАГ 5: Проверка количества уравнений ===`);
-({ matrix, vector } = step5(t, c, resultStep3));
+  let { matrix, vector } = step4(resultStep3, s, n, g);
 
-const logs = step6(matrix, vector, n, s, g);
+  console.log(`\n=== ШАГ 5: Проверка количества уравнений ===`);
+  ({ matrix, vector } = step5(s, t, c, resultStep3));
 
-let resultStep8 = step8(g, s, n, p, a);
+  const logs = step6(matrix, vector, n, s, g);
+
+  if (logs === null || Object.keys(logs).length !== t) {
+    console.clear();
+    return init();
+  }
+
+  let resultStep8 = step8(g, s, n, p, a);
+
+  const x = step9(resultStep8, s, n, g, logs);
+
+  checkResult(x, g, a, n);
+}
+
+init();
