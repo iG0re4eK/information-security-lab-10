@@ -407,7 +407,9 @@ function checkResult(x, g, a, n) {
     x = x[0]?.value || x[x.length - 1]?.value;
   }
   console.log(`g^${x} = ${sumMod(g, x, p)}; a = ${a}`);
-  console.log(`Проверка: ${sumMod(g, x, p)} ≡ ${a} (mod ${p})`);
+  console.log(
+    `Проверка: ${g}^${x} mod ${p} = ${sumMod(g, x, p)} ≡ (a: ${a}) (mod ${p})`
+  );
   console.log(`Дискретный логарифм log_${g}(${a}) ≡ ${x} (mod ${n})`);
 }
 
