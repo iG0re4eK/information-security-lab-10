@@ -381,8 +381,8 @@ function step9(resultStep8, s, n, g, logs) {
 
   let log_a = null;
 
-  resultStep8.forEach((item, idx) => {
-    const { k, ag_k, factorBase } = item;
+  resultStep8.forEach((item) => {
+    const { k, factorBase } = item;
 
     const row = s.map((p) => factorBase[p] || 0);
 
