@@ -16,7 +16,7 @@ function isPrime(num) {
 }
 
 function step1(t, count = 100) {
-  titleStep(1, "Факторной база");
+  titleStep(1, "Факторная база.");
 
   const factorBase = [];
 
@@ -84,14 +84,20 @@ function step3(g, s, n, p) {
 
   let { k, g_k } = step2(n, g, p);
 
-  titleStep(2, `Выбрать случайное k: 0<=k<${n} и вычислить ${g}^${k} mod ${p}`);
+  titleStep(
+    2,
+    `Выбрать случайное k: 0 ≤ k < ${n} и вычислить ${g}<sup>${k}</sup> mod ${p}`
+  );
 
   console.log(`k: ${k} g_k: ${g_k}`);
 
   const factorBaseResult = factorBase(g_k, s);
 
   if (factorBaseResult) {
-    titleStep(3, `Попытка разложить по факторной базе ${g}^${k} mod ${p}`);
+    titleStep(
+      3,
+      `Попытка разложить по факторной базе ${g}<sup>${k}</sup> mod ${p}`
+    );
     result.push({ k: k, g_k: g_k, factorBase: factorBaseResult });
   } else {
     return step3(g, s, n, p);
@@ -344,7 +350,7 @@ function step8(g, s, n, p, a) {
 
   titleStep(
     7,
-    `Выбрать случайное k: 0<=k<${n} и вычислить ${a}*${g}^${k} mod ${p}`
+    `Выбрать случайное k: 0 ≤ k < ${n} и вычислить ${a} * ${g}<sup>${k}</sup> mod ${p}`
   );
 
   console.log(`k: ${k} a*g_k: ${ag_k}`);
