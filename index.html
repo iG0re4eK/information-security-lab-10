@@ -7,6 +7,98 @@
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
+    <div class="wrapper">
+      <h1>Алгоритм исчисления порядка</h1>
+
+      <main>
+        <form id="form">
+          <div class="field">
+            <label for="pValue">p = <input type="text" name="pValue" /></label>
+          </div>
+
+          <div class="field">
+            <label for="gValue">g = <input type="text" name="gValue" /></label>
+          </div>
+
+          <div class="field">
+            <label for="aValue">a = <input type="text" name="aValue" /></label>
+          </div>
+
+          <div class="field"><div name="nValue">n = p - 1</div></div>
+
+          <div class="field">
+            <label for="tValue">t = <input type="text" name="tValue" /></label>
+          </div>
+
+          <div class="field">
+            <label for="cValue"
+              >c = <input type="text" name="cValue" placeholder="c < t"
+            /></label>
+          </div>
+
+          <button type="submit">Решить</button>
+        </form>
+
+        <div class="example-steps">
+          <p>
+            Шаг 1. Выбирается факторная база S = {p<sub>1</sub>, p<sub>2</sub>,
+            p<sub>3</sub>, ..., p<sub>t</sub>}. (Если G = Z<sub>p</sub
+            ><sup>*</sup>, то S состоит из t первых простых чисел.)
+          </p>
+          <p>
+            Шаг 2. Выбрать случайное k: 0 ≤ k < n и вычислить g<sup>k</sup>.
+          </p>
+          <p>
+            Шаг 3. Попытаться разложить g<sup>k</sup> по факторной базе: <br />
+            g<sup>k</sup> = ∏<sub>i=1</sub><sup>t</sup> p<sub>i</sub
+            ><sup>a<sub>i</sub></sup
+            >, a<sub>i</sub> ≥ 0. <br />Если это не удалось, вернуться на Шаг 2.
+          </p>
+          <p>
+            Шаг 4. Логарифмируя обе части получившегося выражения, получаем
+            <br />
+            k ≡ ∑<sub>i=1</sub><sup>t</sup> a<sub>i</sub> log<sub>g</sub>p<sub
+              >i</sub
+            >
+            (mod n) *
+            <br />
+            В этом выражении неизвестными являются логарифмы. <br />
+            Это сравнение с t неизвестными следует запомнить.
+          </p>
+          <p>
+            Шаг 5. Если сравнений вида (*), полученных на Шаге 4, меньше, чем
+            t+c, то вернуться на Шаг 2.
+          </p>
+          <p>
+            Шаг 6. Решить систему t+c сравнений с t неизвестными вида (*),
+            составленную на Шагах 2-5.
+          </p>
+          <p>
+            Шаг 7. Выбрать случайное k: 0 ≤ k < n и вычислить ag<sup>k</sup>.
+          </p>
+          <p>
+            Шаг 8. Попытаться разложить ag<sup>k</sup> по факторной базе: <br />
+            ag<sup>k</sup> = ∏<sub>i=1</sub><sup>t</sup> p<sub>i</sub
+            ><sup>b<sub>i</sub></sup
+            >, b<sub>i</sub> ≥ 0. <br />Если это не удалось, вернуться на Шаг 7.
+          </p>
+          <p>
+            Шаг 9. Логарифмируя обе части последнего равенства, получаем <br />
+            x = log<sub>g</sub>a = ∑<sub>i=1</sub><sup>t</sup> b<sub>i</sub>
+            log<sub>g</sub>p<sub>i</sub> - k (mod n),
+            <br />
+            где log<sub>g</sub>p<sub>i</sub> (1 ≤ i ≤ t) вычисленны на Шаге 6
+            как решение системы сравнений.
+          </p>
+          <p>
+            Выход: <br />
+            x = log<sub>g</sub>a mod n.
+          </p>
+        </div>
+
+        <div id="result" class="result"></div>
+      </main>
+    </div>
     <script src="./main.js"></script>
   </body>
 </html>

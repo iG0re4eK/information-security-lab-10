@@ -1,3 +1,5 @@
+const result = document.getElementById("result");
+
 const p = 307;
 const g = 23;
 const a = 229;
@@ -14,7 +16,7 @@ function isPrime(num) {
 }
 
 function step1(t, count = 100) {
-  console.log("\n--- Шаг 1: Факторной база ---");
+  titleStep(1, "Факторной база");
 
   const factorBase = [];
 
@@ -81,17 +83,15 @@ function step3(g, s, n, p) {
   let result = [];
 
   let { k, g_k } = step2(n, g, p);
-  console.log(
-    `\n--- Шаг 2: Выбрать случайное k: 0<=k<${n} и вычислить ${g}^${k} mod ${p} ---`
-  );
+
+  titleStep(2, `Выбрать случайное k: 0<=k<${n} и вычислить ${g}^${k} mod ${p}`);
+
   console.log(`k: ${k} g_k: ${g_k}`);
 
   const factorBaseResult = factorBase(g_k, s);
 
   if (factorBaseResult) {
-    console.log(
-      `\n--- Шаг 3: Попытка разложить по факторной базе ${g}^${k} mod ${p} ---`
-    );
+    titleStep(3, `Попытка разложить по факторной базе ${g}^${k} mod ${p}`);
     result.push({ k: k, g_k: g_k, factorBase: factorBaseResult });
   } else {
     return step3(g, s, n, p);
@@ -111,9 +111,7 @@ function step3(g, s, n, p) {
 }
 
 function step4(resultStep3, s, n) {
-  console.log(
-    `\n=== ШАГ 4: Логарифмируем обе части получившегося выражения, получаем ===`
-  );
+  titleStep(4, `Логарифмируем обе части получившегося выражения, получаем`);
   console.log(`k ≡ ∑ a_i * log_g(p_i) mod ${n} (*)`);
   console.log(`В этом выражении неизвестными являются логарифмы`);
   console.log(`Это сравнение с t неизвестными следует запомнить`);
@@ -296,8 +294,7 @@ function solveLinearSystem(modulo, matrix, vector) {
 }
 
 function step6(matrix, vector, n, s, g) {
-  console.log(`\n=== ШАГ 6: Решение системы уравнений ===`);
-
+  titleStep(6, `Решение системы уравнений`);
   const neededEquations = t + 1;
 
   if (matrix.length < neededEquations) {
@@ -343,19 +340,19 @@ function step7(n, g, p, a) {
 
 function step8(g, s, n, p, a) {
   let result = [];
-
   let { k, ag_k } = step7(n, g, p, a);
-  console.log(
-    `\n--- Шаг 7: Выбрать случайное k: 0<=k<${n} и вычислить ${a}*${g}^${k} mod ${p} ---`
+
+  titleStep(
+    7,
+    `Выбрать случайное k: 0<=k<${n} и вычислить ${a}*${g}^${k} mod ${p}`
   );
+
   console.log(`k: ${k} a*g_k: ${ag_k}`);
 
   const factorBaseResult = factorBase(ag_k, s);
 
   if (factorBaseResult) {
-    console.log(
-      `\n--- Шаг 8: Попытка разложить по факторной базе ${g}^${k} mod ${p} ---`
-    );
+    titleStep(8, `Попытка разложить по факторной базе ${g}^${k} mod ${p}`);
     result.push({ k: k, ag_k: ag_k, factorBase: factorBaseResult });
   } else {
     return step8(g, s, n, p, a);
@@ -375,9 +372,7 @@ function step8(g, s, n, p, a) {
 }
 
 function step9(resultStep8, s, n, g, logs) {
-  console.log(
-    `\n=== ШАГ 9: Логарифмируем обе части последнего равенства, получаем ===`
-  );
+  titleStep(9, `Логарифмируем обе части последнего равенства, получаем`);
 
   let log_a = null;
 
@@ -413,6 +408,13 @@ function checkResult(x, g, a, n) {
   console.log(`Дискретный логарифм log_${g}(${a}) ≡ ${x} (mod ${n})`);
 }
 
+function titleStep(step, text) {
+  const stepDiv = document.createElement("div");
+  stepDiv.innerHTML = `Шаг ${step}: ${text}`;
+  stepDiv.className = "step";
+  result.appendChild(stepDiv);
+}
+
 function init() {
   const s = step1(t);
 
@@ -420,13 +422,15 @@ function init() {
 
   let { matrix, vector } = step4(resultStep3, s, n, g);
 
-  console.log(`\n=== ШАГ 5: Проверка количества уравнений ===`);
+  titleStep(5, `Проверка количества уравнений`);
+
   ({ matrix, vector } = step5(s, t, c, resultStep3));
 
   const logs = step6(matrix, vector, n, s, g);
 
   if (logs === null || Object.keys(logs).length !== t) {
     console.clear();
+    result.innerHTML = "";
     return init();
   }
 
