@@ -3,6 +3,14 @@ import { RobinMiller } from "./robinMiller.js";
 const form = document.getElementById("form");
 const result = document.getElementById("result");
 const robinMillerMethod = new RobinMiller();
+const startPageBtn = document.getElementById("startPageBtn");
+
+startPageBtn.addEventListener("click", () => {
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  });
+});
 
 form.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -181,26 +189,21 @@ form.addEventListener("submit", (e) => {
 
   clearErrors();
   init(p, g, a, n, t, c);
+
+  result.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
 });
 
 function isGenerator(g, p) {
   const n = p - 1;
-  const modPow = (base, exp, mod) => {
-    let result = 1;
-    base = base % mod;
-    while (exp > 0) {
-      if (exp % 2 === 1) result = (result * base) % mod;
-      base = (base * base) % mod;
-      exp = Math.floor(exp / 2);
-    }
-    return result;
-  };
 
-  if (modPow(g, n, p) !== 1) return false;
+  if (sumMod(g, n, p) !== 1) return false;
 
   for (let i = 2; i * i <= n; i++) {
     if (n % i === 0) {
-      if (modPow(g, i, p) === 1 || modPow(g, n / i, p) === 1) {
+      if (sumMod(g, i, p) === 1 || sumMod(g, n / i, p) === 1) {
         return false;
       }
     }
@@ -881,7 +884,7 @@ function init(p, g, a, n, t, c) {
   const logs = step6(matrix, vector, s, t, n, g);
 
   if (logs === null || Object.keys(logs).length !== t) {
-    result.innerHTML = "<h2>Решение:</h2>";
+    result.innerHTML = `<h2>Решение:</h2>`;
     return init(p, g, a, n, t, c);
   }
 
