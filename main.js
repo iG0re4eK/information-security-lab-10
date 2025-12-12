@@ -1,11 +1,167 @@
+const form = document.getElementById("form");
 const result = document.getElementById("result");
 
-const p = 307;
-const g = 23;
-const a = 229;
-const n = p - 1;
-const t = 4;
-let c = 1;
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const inputs = form.querySelectorAll('input[type="text"]');
+  inputs.forEach((input) => {
+    input.classList.remove("error");
+  });
+
+  const pValue = form.querySelector('[name="pValue"]').value.trim();
+  const gValue = form.querySelector('[name="gValue"]').value.trim();
+  const aValue = form.querySelector('[name="aValue"]').value.trim();
+  const tValue = form.querySelector('[name="tValue"]').value.trim();
+  const cValue = form.querySelector('[name="cValue"]').value.trim();
+
+  let hasError = false;
+
+  if (!pValue) {
+    showError(
+      form.querySelector('[name="pValue"]'),
+      "Поле не должно быть пустым"
+    );
+    hasError = true;
+  }
+
+  if (!gValue) {
+    showError(
+      form.querySelector('[name="gValue"]'),
+      "Поле не должно быть пустым"
+    );
+    hasError = true;
+  }
+
+  if (!aValue) {
+    showError(
+      form.querySelector('[name="aValue"]'),
+      "Поле не должно быть пустым"
+    );
+    hasError = true;
+  }
+
+  if (!tValue) {
+    showError(
+      form.querySelector('[name="tValue"]'),
+      "Поле не должно быть пустым"
+    );
+    hasError = true;
+  }
+
+  if (!cValue) {
+    showError(
+      form.querySelector('[name="cValue"]'),
+      "Поле не должно быть пустым"
+    );
+    hasError = true;
+  }
+
+  if (hasError) return;
+
+  const p = parseInt(pValue);
+  const g = parseInt(gValue);
+  const a = parseInt(aValue);
+  const t = parseInt(tValue);
+  const c = parseInt(cValue);
+
+  const pError = validInput(p);
+  const gError = validInput(g);
+  const aError = validInput(a);
+  const tError = validInput(t);
+  const cError = validInput(c);
+
+  if (pError) {
+    showError(form.querySelector('[name="pValue"]'), pError);
+    hasError = true;
+  }
+
+  if (gError) {
+    showError(form.querySelector('[name="gValue"]'), gError);
+    hasError = true;
+  }
+
+  if (aError) {
+    showError(form.querySelector('[name="aValue"]'), aError);
+    hasError = true;
+  }
+
+  if (tError) {
+    showError(form.querySelector('[name="tValue"]'), tError);
+    hasError = true;
+  }
+
+  if (cError) {
+    showError(form.querySelector('[name="cValue"]'), cError);
+    hasError = true;
+  }
+
+  if (hasError) return;
+
+  if (a >= p) {
+    showError(form.querySelector('[name="aValue"]'), "a должно быть меньше p");
+    return;
+  }
+
+  if (g >= p) {
+    showError(form.querySelector('[name="gValue"]'), "g должно быть меньше p");
+    return;
+  }
+
+  const nValueDiv = form.querySelector('[name="nValue"]');
+  const n = p - 1;
+
+  nValueDiv.innerHTML = `n = ${n}`;
+
+  clearErrors();
+  init(p, g, a, n, t, c);
+});
+
+function validInput(value) {
+  if (value === null || value === undefined) {
+    return "Поле не должно быть пустым";
+  }
+
+  if (isNaN(value)) {
+    return "Значение должно быть числом";
+  }
+
+  if (!Number.isInteger(value)) {
+    return "Значение должно быть целочисленным";
+  }
+
+  if (value <= 0) {
+    return "Значение должно быть положительным числом";
+  }
+
+  return "";
+}
+
+function showError(input, message) {
+  input.classList.add("error");
+
+  let errorElement = input.parentNode.querySelector(".error-message");
+  if (errorElement) {
+    errorElement.remove();
+  }
+
+  errorElement = document.createElement("div");
+  errorElement.className = "error-message";
+  errorElement.textContent = message;
+
+  input.parentNode.appendChild(errorElement);
+}
+
+function clearErrors() {
+  const inputs = form.querySelectorAll('input[type="text"]');
+  inputs.forEach((input) => {
+    input.classList.remove("error");
+    const errorElement = input.parentNode.querySelector(".error-message");
+    if (errorElement) {
+      errorElement.remove();
+    }
+  });
+}
 
 function isPrime(num) {
   if (num < 2) return false;
@@ -15,7 +171,7 @@ function isPrime(num) {
   return true;
 }
 
-function step1(t) {
+function step1(t, p) {
   titleStep(1, "Факторная база.");
 
   const factorBase = [];
@@ -47,7 +203,7 @@ function sumMod(a, x, n) {
   return p < 0 ? p + n : p;
 }
 
-function step2() {
+function step2(n, g, p) {
   const k = Math.floor(Math.random() * n);
 
   const g_k = sumMod(g, k, p);
@@ -77,10 +233,10 @@ function factorBase(g_k, s) {
   return temp === 1 ? result : null;
 }
 
-function step3(s) {
+function step3(s, g, p, n) {
   let result = [];
 
-  let { k, g_k } = step2();
+  let { k, g_k } = step2(n, g, p);
 
   const factorBaseResult = factorBase(g_k, s);
 
@@ -89,11 +245,11 @@ function step3(s) {
       2,
       `Выбираем случайное k: 0 ≤ k < ${n} => k = ${k} и вычисляем g<sup>k</sup>.`
     );
-    gKSection(k, g_k);
+    gKSection(k, g_k, g, p);
     titleStep(3, `Попытка разложить по факторной базе g<sup>k</sup>.`);
     result.push({ k: k, g_k: g_k, factorBase: factorBaseResult });
   } else {
-    return step3(s);
+    return step3(s, g, p, n);
   }
 
   decomposefactorBaseGKSection(result);
@@ -101,7 +257,7 @@ function step3(s) {
   return result;
 }
 
-function step4(resultStep3, s) {
+function step4(resultStep3, s, n, t, c, g, p) {
   titleStep(4, `Логарифмируем обе части получившегося выражения, получаем`);
 
   const matrix = [];
@@ -115,7 +271,7 @@ function step4(resultStep3, s) {
     matrix.push(row);
     vector.push(sumMod(k, 1, n));
 
-    logarithmicOfPartsSection(s, row, k);
+    logarithmicOfPartsSection(s, row, k, g, n, p);
   });
 
   findAllEquationSection(`Нашли ${resultStep3.length}/${t + c}.`);
@@ -123,7 +279,7 @@ function step4(resultStep3, s) {
   return { matrix, vector };
 }
 
-function step5(s, currentResultStep3) {
+function step5(s, currentResultStep3, t, c, n, g, p) {
   titleStep(5, `Проверка количества уравнений`);
   findAllEquationSection(
     `Если сравнений вида (*), полученных на Шаг 4, меньше, чем t + c, то вернуться на Шаг 2.`
@@ -142,11 +298,11 @@ function step5(s, currentResultStep3) {
     const allEquations = [...currentResultStep3];
 
     while (allEquations.length < t + c) {
-      const additionalEquations = step3(s);
+      const additionalEquations = step3(s, g, p, n);
 
       allEquations.push(...additionalEquations);
 
-      step4Result = step4(allEquations, s);
+      step4Result = step4(allEquations, s, n, t, c, g, p);
     }
 
     findAllEquationSection(`Можно переходить к решению системы.`);
@@ -164,7 +320,7 @@ function step5(s, currentResultStep3) {
     );
 
     const equationsToUse = currentResultStep3.slice(0, t + c);
-    step4Result = step4(equationsToUse, s);
+    step4Result = step4(equationsToUse, s, n, t, c, g, p);
 
     return {
       equations: equationsToUse,
@@ -191,7 +347,7 @@ function egcd(a, b) {
   return [g, y1, x1 - Math.floor(a / b) * y1];
 }
 
-function solveLinearSystem(modulo, matrix, vector, s) {
+function solveLinearSystem(modulo, matrix, vector, s, g) {
   const n = matrix.length;
   const m = matrix[0].length;
   const mod = modulo;
@@ -199,7 +355,7 @@ function solveLinearSystem(modulo, matrix, vector, s) {
   let A = matrix.map((row) => [...row]);
   let b = [...vector];
 
-  matrixVectorSection(s, A, b);
+  matrixVectorSection(s, A, b, g);
 
   for (let col = 0; col < m && col < n; col++) {
     stepLinearSystemSection(`<h5>Колонка ${col + 1}:</h5>`);
@@ -232,7 +388,7 @@ function solveLinearSystem(modulo, matrix, vector, s) {
         `<p>Перестановка строк ${col + 1} и ${pivot + 1}</p>`
       );
       stepLinearSystemSection(`<p>Матрица после перестановки:</p>`);
-      matrixVectorSection(s, A, b);
+      matrixVectorSection(s, A, b, g);
     }
 
     const inv = modInverse(A[col][col], mod);
@@ -253,7 +409,7 @@ function solveLinearSystem(modulo, matrix, vector, s) {
     b[col] = (b[col] * inv) % mod;
 
     stepLinearSystemSection(`<p>После нормализации строки ${col + 1}:</p>`);
-    matrixVectorSection(s, A, b);
+    matrixVectorSection(s, A, b, g);
 
     for (let row = 0; row < n; row++) {
       if (row !== col && A[row][col] !== 0) {
@@ -277,7 +433,7 @@ function solveLinearSystem(modulo, matrix, vector, s) {
     }
   }
 
-  matrixVectorSection(s, A, b);
+  matrixVectorSection(s, A, b, g);
 
   const solution = new Array(m).fill(0);
   const hasSolution = new Array(m).fill(false);
@@ -308,7 +464,7 @@ function solveLinearSystem(modulo, matrix, vector, s) {
   return { solution, hasSolution };
 }
 
-function step6(matrix, vector, s) {
+function step6(matrix, vector, s, t, n, g) {
   titleStep(6, `Решение системы уравнений`);
   const neededEquations = t + 1;
 
@@ -319,7 +475,7 @@ function step6(matrix, vector, s) {
   const A = matrix.slice(0, neededEquations);
   const b = vector.slice(0, neededEquations);
 
-  const result = solveLinearSystem(n, A, b, s);
+  const result = solveLinearSystem(n, A, b, s, g);
 
   if (!result) {
     return null;
@@ -339,7 +495,7 @@ function step6(matrix, vector, s) {
   return logs;
 }
 
-function step7() {
+function step7(n, a, g, p) {
   const k = Math.floor(Math.random() * n);
 
   const ag_k = sumMod(a * sumMod(g, k, p), 1, p);
@@ -347,9 +503,9 @@ function step7() {
   return { k, ag_k };
 }
 
-function step8(s) {
+function step8(s, n, a, g, p, n) {
   let result = [];
-  let { k, ag_k } = step7();
+  let { k, ag_k } = step7(n, a, g, p);
 
   const factorBaseResult = factorBase(ag_k, s);
 
@@ -358,14 +514,14 @@ function step8(s) {
       7,
       `Выбираем случайное k: 0 ≤ k < ${n} => k = ${k} и вычисляем ag<sup>k</sup>.`
     );
-    agKSection(k, ag_k);
+    agKSection(k, ag_k, a, g, p);
 
     titleStep(8, `Попытка разложить по факторной базе ag<sup>k</sup>.`);
 
     result.push({ k: k, ag_k: ag_k, factorBase: factorBaseResult });
     decomposefactorBaseAGKSection(result);
   } else {
-    return step8(s);
+    return step8(s, n, a, g, p, n);
   }
 
   result.forEach((el) => {
@@ -381,7 +537,7 @@ function step8(s) {
   return result;
 }
 
-function step9(resultStep8, s, logs) {
+function step9(resultStep8, s, logs, g, a, n, p) {
   titleStep(9, `Логарифмируем обе части последнего равенства, получаем`);
 
   let log_a = null;
@@ -401,14 +557,14 @@ function step9(resultStep8, s, logs) {
     log_a = (rightSide - k) % n;
     if (log_a < 0) log_a += n;
 
-    logarithmicOfPartsFinalSection(s, row, k, log_a, logs);
+    logarithmicOfPartsFinalSection(s, row, k, log_a, logs, n, g, a, p);
     console.log(`log_${g}(${a}) ≡ ${rightSide} - ${k} ≡ ${log_a} (mod ${n})`);
   });
 
   return log_a;
 }
 
-function checkResult(x) {
+function checkResult(x, g, p, a, n) {
   titleStep("", `Проверка результата x = ${x}.`);
 
   if (Array.isArray(x)) {
@@ -441,7 +597,7 @@ function factorBaseSection(s) {
   result.appendChild(factorBaseDiv);
 }
 
-function gKSection(k, g_k) {
+function gKSection(k, g_k, g, p) {
   const gKDiv = document.createElement("div");
   gKDiv.className = "section-step";
   gKDiv.innerHTML = `g<sup>k</sup> = ${g}<sup>${k}</sup> mod ${p} = ${g_k}.`;
@@ -463,7 +619,7 @@ function decomposefactorBaseGKSection(array) {
   result.appendChild(decomposefactorBaseDiv);
 }
 
-function logarithmicOfPartsSection(s, row, k) {
+function logarithmicOfPartsSection(s, row, k, g, n, p) {
   const logarithmicOfPartsDiv = document.createElement("div");
   logarithmicOfPartsDiv.className = "section-step logarithmic-of-parts";
 
@@ -494,7 +650,7 @@ function findAllEquationSection(msg) {
   result.appendChild(findAllEquationDiv);
 }
 
-function matrixVectorSection(s, matrix, vector) {
+function matrixVectorSection(s, matrix, vector, g) {
   matrix.forEach((row) => {
     console.log(row.join("\t"));
   });
@@ -550,7 +706,7 @@ function stepLinearSystemSection(msg) {
   result.appendChild(stepLinearSystemDiv);
 }
 
-function agKSection(k, ag_k) {
+function agKSection(k, ag_k, a, g, p) {
   const agKDiv = document.createElement("div");
   agKDiv.className = "section-step";
   agKDiv.innerHTML = `ag<sup>k</sup> = ${a} * ${g}<sup>${k}</sup> mod ${p} = ${ag_k}.`;
@@ -572,7 +728,7 @@ function decomposefactorBaseAGKSection(array) {
   result.appendChild(decomposefactorBaseDiv);
 }
 
-function logarithmicOfPartsFinalSection(s, row, k, log_a, logs) {
+function logarithmicOfPartsFinalSection(s, row, k, log_a, logs, n, g, a, p) {
   const logarithmicOfPartsDiv = document.createElement("div");
   logarithmicOfPartsDiv.className = "section-step logarithmic-of-parts";
 
@@ -635,29 +791,26 @@ function checkResultSection(msg) {
   result.appendChild(checkResultDiv);
 }
 
-function init() {
-  const s = step1(t);
+function init(p, g, a, n, t, c) {
+  const s = step1(t, p);
   factorBaseSection(s);
 
-  let resultStep3 = step3(s);
+  let resultStep3 = step3(s, g, p, n);
 
-  let { matrix, vector } = step4(resultStep3, s);
+  let { matrix, vector } = step4(resultStep3, s, n, t, c, g, p);
 
-  ({ matrix, vector } = step5(s, resultStep3));
+  ({ matrix, vector } = step5(s, resultStep3, t, c, n, g, p));
 
-  const logs = step6(matrix, vector, s);
+  const logs = step6(matrix, vector, s, t, n, g);
 
   if (logs === null || Object.keys(logs).length !== t) {
-    console.clear();
     result.innerHTML = "<h2>Решение:</h2>";
-    return init();
+    return init(p, g, a, n, t, c);
   }
 
-  let resultStep8 = step8(s);
+  let resultStep8 = step8(s, n, a, g, p, n);
 
-  const x = step9(resultStep8, s, logs);
+  const x = step9(resultStep8, s, logs, g, a, n, p);
 
-  checkResult(x);
+  checkResult(x, g, p, a, n);
 }
-
-init();

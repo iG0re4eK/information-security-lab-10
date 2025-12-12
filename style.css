@@ -164,3 +164,19 @@ form {
 .check-result {
   line-height: 2rem;
 }
+
+.error {
+  color: red;
+  border: 1px solid red;
+  background-color: rgb(255, 185, 185);
+
+  &:focus {
+    outline: 2px solid red !important;
+  }
+}
+
+.error-message {
+  color: rgb(255, 103, 103);
+  font-size: 12px;
+  margin-top: 5px;
+}
