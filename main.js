@@ -191,7 +191,7 @@ function egcd(a, b) {
   return [g, y1, x1 - Math.floor(a / b) * y1];
 }
 
-function solveLinearSystem(modulo, matrix, vector) {
+function solveLinearSystem(modulo, matrix, vector, s) {
   const n = matrix.length;
   const m = matrix[0].length;
   const mod = modulo;
@@ -199,7 +199,11 @@ function solveLinearSystem(modulo, matrix, vector) {
   let A = matrix.map((row) => [...row]);
   let b = [...vector];
 
+  matrixVectorSection(s, A, b);
+
   for (let col = 0; col < m && col < n; col++) {
+    stepLinearSystemSection(`<h5>Колонка ${col + 1}:</h5>`);
+
     let pivot = -1;
     for (let row = col; row < n; row++) {
       if (A[row][col] % mod !== 0) {
@@ -208,26 +212,61 @@ function solveLinearSystem(modulo, matrix, vector) {
       }
     }
 
-    if (pivot === -1) continue;
+    if (pivot === -1) {
+      stepLinearSystemSection(
+        `<p>Нет ненулевого опорного элемента в столбце ${col + 1}</p>`
+      );
+      continue;
+    }
+
+    stepLinearSystemSection(
+      `<p>Опорный элемент: A<sub>${pivot + 1}</sub><sub>${col + 1}</sub> = ${
+        A[pivot][col]
+      }</p>`
+    );
 
     if (pivot !== col) {
       [A[col], A[pivot]] = [A[pivot], A[col]];
       [b[col], b[pivot]] = [b[pivot], b[col]];
+      stepLinearSystemSection(
+        `<p>Перестановка строк ${col + 1} и ${pivot + 1}</p>`
+      );
+      stepLinearSystemSection(`<p>Матрица после перестановки:</p>`);
+      matrixVectorSection(s, A, b);
     }
 
     const inv = modInverse(A[col][col], mod);
     if (inv === -1) {
+      stepLinearSystemSection(
+        `<p>Обратный элемент для ${A[col][col]} по модулю ${mod} не существует</p>`
+      );
       continue;
     }
+
+    stepLinearSystemSection(
+      `<p>Обратный элемент: ${inv} (${A[col][col]} * ${inv} ≡ 1 mod ${mod})</p>`
+    );
 
     for (let j = col; j < m; j++) {
       A[col][j] = (A[col][j] * inv) % mod;
     }
     b[col] = (b[col] * inv) % mod;
 
+    stepLinearSystemSection(`<p>После нормализации строки ${col + 1}:</p>`);
+    matrixVectorSection(s, A, b);
+
     for (let row = 0; row < n; row++) {
       if (row !== col && A[row][col] !== 0) {
         const factor = A[row][col];
+        const rowNum = row + 1;
+        const colNum = col + 1;
+        stepLinearSystemSection(
+          `<p>Обрабатываем строку ${rowNum}:</p>` +
+            `<p>Элемент в столбце ${colNum} равен ${factor}</p>` +
+            `<p>Вычитаем из строки ${rowNum} строку ${colNum}, умноженную на ${factor}</p>` +
+            `<p>(чтобы обнулить элемент A<sub>${rowNum}</sub><sub>${colNum}</sub>)</p>`
+        );
+
         for (let j = col; j < m; j++) {
           A[row][j] = (A[row][j] - factor * A[col][j]) % mod;
           if (A[row][j] < 0) A[row][j] += mod;
@@ -237,6 +276,8 @@ function solveLinearSystem(modulo, matrix, vector) {
       }
     }
   }
+
+  matrixVectorSection(s, A, b);
 
   const solution = new Array(m).fill(0);
   const hasSolution = new Array(m).fill(false);
@@ -248,6 +289,11 @@ function solveLinearSystem(modulo, matrix, vector) {
         if (nonZeroRow === -1) {
           nonZeroRow = j;
         } else {
+          stepLinearSystemSection(
+            `<p>Ошибка: столбец ${
+              i + 1
+            } имеет несколько ненулевых элементов</p>`
+          );
           return null;
         }
       }
@@ -273,13 +319,11 @@ function step6(matrix, vector, s) {
   const A = matrix.slice(0, neededEquations);
   const b = vector.slice(0, neededEquations);
 
-  const result = solveLinearSystem(n, A, b);
+  const result = solveLinearSystem(n, A, b, s);
 
   if (!result) {
     return null;
   }
-
-  matrixVectorSection(s, matrix, vector);
 
   const logs = {};
   for (let i = 0; i < s.length; i++) {
@@ -497,6 +541,13 @@ function solveLinearSystemSection(msg) {
   solveLinearSystemDiv.className = "section-step solve-linear-system";
   solveLinearSystemDiv.innerHTML = msg;
   result.appendChild(solveLinearSystemDiv);
+}
+
+function stepLinearSystemSection(msg) {
+  const stepLinearSystemDiv = document.createElement("div");
+  stepLinearSystemDiv.className = "section-step step-linear-system";
+  stepLinearSystemDiv.innerHTML = msg;
+  result.appendChild(stepLinearSystemDiv);
 }
 
 function agKSection(k, ag_k) {

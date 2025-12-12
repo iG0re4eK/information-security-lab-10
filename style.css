@@ -123,8 +123,7 @@ form {
 }
 
 .matrix-vector th {
-  padding: 18px 24px;
-  font-size: 1.2rem;
+  padding: 10px 14px;
   font-weight: 600;
   min-width: 60px;
   text-shadow: 2px 2px 2px black;
@@ -132,8 +131,7 @@ form {
 
 .matrix-vector td {
   border: 1px solid black;
-  padding: 18px 24px;
-  font-size: 1.2rem;
+  padding: 10px 34px;
   font-weight: 600;
   color: #000000;
   background-color: rgba(255, 255, 255, 0.9);
@@ -157,4 +155,12 @@ form {
   font-weight: 600;
   text-shadow: 2px 2px 2px black;
   color: #ffffff;
+}
+
+.logarithmic-of-parts {
+  line-height: 2rem;
+}
+
+.check-result {
+  line-height: 2rem;
 }
