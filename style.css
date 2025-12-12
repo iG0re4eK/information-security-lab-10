@@ -44,7 +44,7 @@ form {
     padding: 0.5rem 1rem;
 
     &:focus {
-      outline: 2px solid blue;
+      outline: 2px solid rgb(183, 255, 249);
     }
   }
 
@@ -88,13 +88,13 @@ form {
 .step {
   background: linear-gradient(
     to right,
-    rgb(142, 130, 106),
+    rgb(53, 53, 53),
     rgba(255, 255, 255, 0)
   );
 
   font-size: 1.1rem;
   font-weight: 600;
-  border-radius: 1rem;
+  border-radius: 10rem;
   padding: 0.6rem;
   padding-left: 1rem;
 
@@ -106,4 +106,55 @@ form {
 .section-step {
   margin-left: 1.4rem;
   font-size: 1.05rem;
+}
+
+.matrix-vector {
+  margin: 1.5rem auto;
+  border-collapse: collapse;
+  border-radius: 12px;
+  overflow: hidden;
+  text-shadow: none;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.matrix-vector thead {
+  background-color: rgb(24, 56, 56);
+}
+
+.matrix-vector th {
+  padding: 18px 24px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  min-width: 60px;
+  text-shadow: 2px 2px 2px black;
+}
+
+.matrix-vector td {
+  border: 1px solid black;
+  padding: 18px 24px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #000000;
+  background-color: rgba(255, 255, 255, 0.9);
+  min-width: 60px;
+}
+
+.matrix-vector tbody tr td:last-child {
+  border-right: none;
+}
+
+.matrix-vector tbody tr td:first-child {
+  border-left: none;
+}
+
+.matrix-vector tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.matrix-vector td:last-child {
+  background-color: rgb(85, 147, 146);
+  font-weight: 600;
+  text-shadow: 2px 2px 2px black;
+  color: #ffffff;
 }

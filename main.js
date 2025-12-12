@@ -120,16 +120,6 @@ function step4(resultStep3, s) {
 
   findAllEquationSection(`Нашли ${resultStep3.length}/${t + c}.`);
 
-  console.log("matrix:");
-  matrix.forEach((row) => {
-    console.log(row.join("\t"));
-  });
-  console.log(" vector: ");
-  console.log(vector.join("\n"));
-
-  console.log(`В этом выражении неизвестными являются логарифмы`);
-  console.log(`Это сравнение с t неизвестными следует запомнить`);
-
   return { matrix, vector };
 }
 
@@ -209,8 +199,6 @@ function solveLinearSystem(modulo, matrix, vector) {
   let A = matrix.map((row) => [...row]);
   let b = [...vector];
 
-  console.log(`\nРешаем систему ${n}×${m} по модулю ${mod}`);
-
   for (let col = 0; col < m && col < n; col++) {
     let pivot = -1;
     for (let row = col; row < n; row++) {
@@ -229,7 +217,6 @@ function solveLinearSystem(modulo, matrix, vector) {
 
     const inv = modInverse(A[col][col], mod);
     if (inv === -1) {
-      console.log(`Элемент ${A[col][col]} необратим по модулю ${mod}`);
       continue;
     }
 
@@ -261,7 +248,6 @@ function solveLinearSystem(modulo, matrix, vector) {
         if (nonZeroRow === -1) {
           nonZeroRow = j;
         } else {
-          console.log(`Конфликт для переменной x${i}`);
           return null;
         }
       }
@@ -281,9 +267,6 @@ function step6(matrix, vector, s) {
   const neededEquations = t + 1;
 
   if (matrix.length < neededEquations) {
-    console.log(
-      `Нужно больше уравнений! Требуется: ${neededEquations}, есть: ${matrix.length}`
-    );
     return null;
   }
 
@@ -293,22 +276,21 @@ function step6(matrix, vector, s) {
   const result = solveLinearSystem(n, A, b);
 
   if (!result) {
-    console.log("Система не имеет решения!");
     return null;
   }
 
-  console.log("\nНайденные логарифмы элементов факторной базы:");
+  matrixVectorSection(s, matrix, vector);
+
   const logs = {};
   for (let i = 0; i < s.length; i++) {
     if (result.hasSolution[i]) {
       logs[s[i]] = result.solution[i];
-      console.log(`log_${g}(${s[i]}) ≡ ${result.solution[i]} (mod ${n})`);
-    } else {
-      console.log(`log_${g}(${s[i]}) — не определен`);
+
+      solveLinearSystemSection(
+        `log<sub>${g}</sub>(${s[i]}) ≡ ${result.solution[i]} mod ${n}`
+      );
     }
   }
-
-  console.log(logs);
 
   return logs;
 }
@@ -466,6 +448,55 @@ function findAllEquationSection(msg) {
   findAllEquationDiv.className = "section-step find-all-equation";
   findAllEquationDiv.innerHTML = msg;
   result.appendChild(findAllEquationDiv);
+}
+
+function matrixVectorSection(s, matrix, vector) {
+  matrix.forEach((row) => {
+    console.log(row.join("\t"));
+  });
+
+  console.log(vector.join("\n"));
+
+  const matrixVectorTable = document.createElement("table");
+  const matrixVectorTbody = document.createElement("tbody");
+  const matrixVectorThead = document.createElement("thead");
+  matrixVectorTable.className = " matrix-vector";
+
+  const trH = document.createElement("tr");
+  s.forEach((el, index) => {
+    const th = document.createElement("th");
+    th.innerHTML = `log<sub>${g}</sub>(${el})`;
+    trH.appendChild(th);
+  });
+
+  const thK = document.createElement("th");
+  thK.innerHTML = `k`;
+  trH.appendChild(thK);
+
+  for (let i = 0; i < matrix.length; i++) {
+    const tr = document.createElement("tr");
+    for (let j = 0; j < matrix[i].length; j++) {
+      const td = document.createElement("td");
+      td.innerHTML = `${matrix[i][j]}`;
+      tr.appendChild(td);
+    }
+    const td = document.createElement("td");
+    td.innerHTML = `${vector[i]}`;
+    tr.appendChild(td);
+    matrixVectorTbody.appendChild(tr);
+  }
+
+  matrixVectorThead.appendChild(trH);
+  matrixVectorTable.appendChild(matrixVectorThead);
+  matrixVectorTable.appendChild(matrixVectorTbody);
+  result.appendChild(matrixVectorTable);
+}
+
+function solveLinearSystemSection(msg) {
+  const solveLinearSystemDiv = document.createElement("div");
+  solveLinearSystemDiv.className = "section-step solve-linear-system";
+  solveLinearSystemDiv.innerHTML = msg;
+  result.appendChild(solveLinearSystemDiv);
 }
 
 function agKSection(k, ag_k) {
