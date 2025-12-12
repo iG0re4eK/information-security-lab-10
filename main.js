@@ -541,7 +541,7 @@ function logarithmicOfPartsFinalSection(s, row, k, log_a, logs) {
 
   logarithmicOfPartsDiv.innerHTML = `${a} * ${g}<sup>${k}</sup> ≡ ${outputPow} mod ${p} <br/> log<sub>${g}</sub>(${a}) + ${k} = ${equation}  mod ${n} <br/> log<sub>${g}</sub>(${a}) = ${equation} - ${k} mod ${n} <br/> log<sub>${g}</sub>(${a}) = ${logsOutput} - ${k} mod ${n} <br/> log<sub>${g}</sub>(${a}) = ${logsOutputSum} - ${k} mod ${n} <br/> log<sub>${g}</sub>(${a}) = ${
     logsOutputSum - k
-  } mod ${n}  <br/>  x = ${log_a}`;
+  } mod ${n} <br/> log<sub>${g}</sub>(${a}) = ${log_a} <br/> x = ${log_a}`;
 
   result.appendChild(logarithmicOfPartsDiv);
 }
