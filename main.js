@@ -96,7 +96,7 @@ function step3(s) {
     return step3(s);
   }
 
-  decomposefactorBaseSection(result);
+  decomposefactorBaseGKSection(result);
 
   return result;
 }
@@ -133,7 +133,7 @@ function step4(resultStep3, s) {
   return { matrix, vector };
 }
 
-function step5(s, t, c, currentResultStep3) {
+function step5(s, currentResultStep3) {
   titleStep(5, `Проверка количества уравнений`);
   findAllEquationSection(
     `Если сравнений вида (*), полученных на Шаг 4, меньше, чем t + c, то вернуться на Шаг 2.`
@@ -276,7 +276,7 @@ function solveLinearSystem(modulo, matrix, vector) {
   return { solution, hasSolution };
 }
 
-function step6(matrix, vector, n, s, g) {
+function step6(matrix, vector, s) {
   titleStep(6, `Решение системы уравнений`);
   const neededEquations = t + 1;
 
@@ -313,7 +313,7 @@ function step6(matrix, vector, n, s, g) {
   return logs;
 }
 
-function step7(n, g, p, a) {
+function step7() {
   const k = Math.floor(Math.random() * n);
 
   const ag_k = sumMod(a * sumMod(g, k, p), 1, p);
@@ -321,21 +321,25 @@ function step7(n, g, p, a) {
   return { k, ag_k };
 }
 
-function step8(g, s, n, p, a) {
+function step8(s) {
   let result = [];
-  let { k, ag_k } = step7(n, g, p, a);
+  let { k, ag_k } = step7();
 
   const factorBaseResult = factorBase(ag_k, s);
 
   if (factorBaseResult) {
     titleStep(
       7,
-      `Выбрать случайное k: 0 ≤ k < ${n} и вычислить ${a} * ${g}<sup>${k}</sup> mod ${p}`
+      `Выбираем случайное k: 0 ≤ k < ${n} => k = ${k} и вычисляем ag<sup>k</sup>.`
     );
-    titleStep(8, `Попытка разложить по факторной базе ${g}^${k} mod ${p}`);
+    agKSection(k, ag_k);
+
+    titleStep(8, `Попытка разложить по факторной базе ag<sup>k</sup>.`);
+
     result.push({ k: k, ag_k: ag_k, factorBase: factorBaseResult });
+    decomposefactorBaseAGKSection(result);
   } else {
-    return step8(g, s, n, p, a);
+    return step8(s);
   }
 
   result.forEach((el) => {
@@ -351,7 +355,7 @@ function step8(g, s, n, p, a) {
   return result;
 }
 
-function step9(resultStep8, s, n, g, logs) {
+function step9(resultStep8, s, logs) {
   titleStep(9, `Логарифмируем обе части последнего равенства, получаем`);
 
   let log_a = null;
@@ -371,21 +375,30 @@ function step9(resultStep8, s, n, g, logs) {
     log_a = (rightSide - k) % n;
     if (log_a < 0) log_a += n;
 
+    logarithmicOfPartsFinalSection(s, row, k, log_a, logs);
     console.log(`log_${g}(${a}) ≡ ${rightSide} - ${k} ≡ ${log_a} (mod ${n})`);
   });
 
   return log_a;
 }
 
-function checkResult(x, g, a, n) {
+function checkResult(x) {
+  titleStep("", `Проверка результата x = ${x}.`);
+
   if (Array.isArray(x)) {
     x = x[0]?.value || x[x.length - 1]?.value;
   }
-  console.log(`g^${x} = ${sumMod(g, x, p)}; a = ${a}`);
-  console.log(
-    `Проверка: ${g}^${x} mod ${p} = ${sumMod(g, x, p)} ≡ (a: ${a}) (mod ${p})`
-  );
-  console.log(`Дискретный логарифм log_${g}(${a}) ≡ ${x} (mod ${n})`);
+  const gPowX = sumMod(g, x, p);
+  checkResultSection(`a = ${a}.`);
+  if (gPowX === a) {
+    checkResultSection(`${g}<sup>${x}</sup> mod ${p} = ${gPowX}`);
+    checkResultSection(
+      `Дискретный логарифм log<sub>${g}</sub>(${a}) ≡ ${x} (mod ${n})`
+    );
+  } else {
+    checkResultSection(`${g}<sup>${x}</sup> (mod ${p}) = ${gPowX} ≠ ${a}.`);
+    checkResultSection(`Не получилось :( <br/> Попробуй заново.`);
+  }
 }
 
 function titleStep(step, text) {
@@ -409,7 +422,7 @@ function gKSection(k, g_k) {
   result.appendChild(gKDiv);
 }
 
-function decomposefactorBaseSection(array) {
+function decomposefactorBaseGKSection(array) {
   const decomposefactorBaseDiv = document.createElement("div");
   decomposefactorBaseDiv.className = "section-step decompose-factor-base";
   const dict = array[0];
@@ -455,6 +468,91 @@ function findAllEquationSection(msg) {
   result.appendChild(findAllEquationDiv);
 }
 
+function agKSection(k, ag_k) {
+  const agKDiv = document.createElement("div");
+  agKDiv.className = "section-step";
+  agKDiv.innerHTML = `ag<sup>k</sup> = ${a} * ${g}<sup>${k}</sup> mod ${p} = ${ag_k}.`;
+  result.appendChild(agKDiv);
+}
+
+function decomposefactorBaseAGKSection(array) {
+  const decomposefactorBaseDiv = document.createElement("div");
+  decomposefactorBaseDiv.className = "section-step decompose-factor-base";
+  const dict = array[0];
+
+  decomposefactorBaseDiv.innerHTML = `ag<sup>k</sup> = ${dict.ag_k} = `;
+  array.forEach((el) => {
+    const factors = Object.entries(el.factorBase)
+      .map(([prime, power]) => `${prime}<sup>${power > 1 ? power : ""}</sup>`)
+      .join(" * ");
+    decomposefactorBaseDiv.innerHTML += factors;
+  });
+  result.appendChild(decomposefactorBaseDiv);
+}
+
+function logarithmicOfPartsFinalSection(s, row, k, log_a, logs) {
+  const logarithmicOfPartsDiv = document.createElement("div");
+  logarithmicOfPartsDiv.className = "section-step logarithmic-of-parts";
+
+  const outputPow = s
+    .map((el_s, index) => {
+      const coeff = row[index];
+
+      return coeff ? `${el_s}${coeff > 1 ? `<sup>${coeff}</sup>` : ""}` : null;
+    })
+    .filter((x) => x)
+    .join(" * ");
+
+  const logsOutput =
+    s
+      .map((prime, index) => {
+        const coeff = row[index];
+        const logValue = logs[prime];
+
+        if (coeff > 0 && logValue !== undefined) {
+          if (coeff === 1) return `${logValue}`;
+          return `${coeff} * ${logValue}`;
+        }
+        return null;
+      })
+      .filter((x) => x)
+      .join(" + ") || "0";
+
+  let logsOutputSum = 0;
+  s.forEach((prime, index) => {
+    const coeff = row[index];
+    const logValue = logs[prime];
+
+    if (coeff > 0 && logValue !== undefined) {
+      logsOutputSum = (logsOutputSum + coeff * logValue) % n;
+    }
+  });
+
+  const equation =
+    s
+      .map((p, j) => {
+        const coeff = row[j];
+        return coeff
+          ? `${coeff > 1 ? coeff + " *" : ""} log<sub>${g}</sub>(${p})`
+          : null;
+      })
+      .filter((x) => x)
+      .join(" + ") || "0";
+
+  logarithmicOfPartsDiv.innerHTML = `${a} * ${g}<sup>${k}</sup> ≡ ${outputPow} mod ${p} <br/> log<sub>${g}</sub>(${a}) + ${k} = ${equation}  mod ${n} <br/> log<sub>${g}</sub>(${a}) = ${equation} - ${k} mod ${n} <br/> log<sub>${g}</sub>(${a}) = ${logsOutput} - ${k} mod ${n} <br/> log<sub>${g}</sub>(${a}) = ${logsOutputSum} - ${k} mod ${n} <br/> log<sub>${g}</sub>(${a}) = ${
+    logsOutputSum - k
+  } mod ${n}  <br/>  x = ${log_a}`;
+
+  result.appendChild(logarithmicOfPartsDiv);
+}
+
+function checkResultSection(msg) {
+  const checkResultDiv = document.createElement("div");
+  checkResultDiv.className = "section-step check-result";
+  checkResultDiv.innerHTML = msg;
+  result.appendChild(checkResultDiv);
+}
+
 function init() {
   const s = step1(t);
   factorBaseSection(s);
@@ -463,9 +561,9 @@ function init() {
 
   let { matrix, vector } = step4(resultStep3, s);
 
-  ({ matrix, vector } = step5(s, t, c, resultStep3));
+  ({ matrix, vector } = step5(s, resultStep3));
 
-  const logs = step6(matrix, vector, n, s, g);
+  const logs = step6(matrix, vector, s);
 
   if (logs === null || Object.keys(logs).length !== t) {
     console.clear();
@@ -473,11 +571,11 @@ function init() {
     return init();
   }
 
-  let resultStep8 = step8(g, s, n, p, a);
+  let resultStep8 = step8(s);
 
-  const x = step9(resultStep8, s, n, g, logs);
+  const x = step9(resultStep8, s, logs);
 
-  checkResult(x, g, a, n);
+  checkResult(x);
 }
 
 init();
