@@ -15,12 +15,12 @@ function isPrime(num) {
   return true;
 }
 
-function step1(t, count = 100) {
+function step1(t) {
   titleStep(1, "Факторная база.");
 
   const factorBase = [];
 
-  for (let i = 2; i <= count; i++) {
+  for (let i = 2; i <= p; i++) {
     if (isPrime(i)) {
       factorBase.push(i);
     }
@@ -118,6 +118,8 @@ function step4(resultStep3, s) {
     logarithmicOfPartsSection(s, row, k);
   });
 
+  findAllEquationSection(`Нашли ${resultStep3.length}/${t + c}.`);
+
   console.log("matrix:");
   matrix.forEach((row) => {
     console.log(row.join("\t"));
@@ -132,30 +134,32 @@ function step4(resultStep3, s) {
 }
 
 function step5(s, t, c, currentResultStep3) {
-  console.log(
-    `Если сравнений вида (*), полученных на Шаг 4, меньше, чем t + c, то вернуться на Шаг 2`
+  titleStep(5, `Проверка количества уравнений`);
+  findAllEquationSection(
+    `Если сравнений вида (*), полученных на Шаг 4, меньше, чем t + c, то вернуться на Шаг 2.`
   );
-  console.log(`t = ${t}, c = ${c}, нужно t+c = ${t + c} уравнений`);
-  console.log(`Имеем уравнений: ${currentResultStep3.length}`);
+  findAllEquationSection(
+    `t = ${t}, c = ${c}, нужно t + c = ${t + c} уравнений`
+  );
+  findAllEquationSection(`Количество уравнений: ${currentResultStep3.length}.`);
 
   let step4Result = null;
 
   if (currentResultStep3.length < t + c) {
     const needed = t + c - currentResultStep3.length;
-    console.log(`\n Нужно найти еще ${needed} уравнений.`);
+    findAllEquationSection(`Нужно найти еще ${needed}.`);
 
     const allEquations = [...currentResultStep3];
 
     while (allEquations.length < t + c) {
       const additionalEquations = step3(s);
+
       allEquations.push(...additionalEquations);
-      console.log(`Найдено еще уравнение. Всего: ${allEquations.length}`);
+
       step4Result = step4(allEquations, s);
     }
 
-    console.log(
-      `\nТеперь имеем ${allEquations.length} уравнений (нужно ${t + c})`
-    );
+    findAllEquationSection(`Можно переходить к решению системы.`);
 
     return {
       equations: allEquations,
@@ -164,8 +168,10 @@ function step5(s, t, c, currentResultStep3) {
       c: c,
     };
   } else {
-    console.log(`Можно переходить к решению системы.`);
-    console.log(`Используем только первые ${t + c} уравнений для системы`);
+    findAllEquationSection(`Можно переходить к решению системы.`);
+    findAllEquationSection(
+      `Используем только первые ${t + c} уравнений для системы`
+    );
 
     const equationsToUse = currentResultStep3.slice(0, t + c);
     step4Result = step4(equationsToUse, s);
@@ -442,6 +448,13 @@ function logarithmicOfPartsSection(s, row, k) {
   result.appendChild(logarithmicOfPartsDiv);
 }
 
+function findAllEquationSection(msg) {
+  const findAllEquationDiv = document.createElement("div");
+  findAllEquationDiv.className = "section-step find-all-equation";
+  findAllEquationDiv.innerHTML = msg;
+  result.appendChild(findAllEquationDiv);
+}
+
 function init() {
   const s = step1(t);
   factorBaseSection(s);
@@ -449,8 +462,6 @@ function init() {
   let resultStep3 = step3(s);
 
   let { matrix, vector } = step4(resultStep3, s);
-
-  titleStep(5, `Проверка количества уравнений`);
 
   ({ matrix, vector } = step5(s, t, c, resultStep3));
 
