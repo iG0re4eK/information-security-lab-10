@@ -13,21 +13,38 @@
       <main>
         <form id="form">
           <div class="field">
-            <label for="pValue">p = <input type="text" name="pValue" /></label>
+            <label for="pValue"
+              >p = <input type="text" name="pValue" placeholder="Простое число"
+            /></label>
           </div>
 
           <div class="field">
-            <label for="gValue">g = <input type="text" name="gValue" /></label>
+            <label for="gValue"
+              >g =
+              <input type="text" name="gValue" placeholder="Примитивное для p"
+            /></label>
           </div>
 
           <div class="field">
-            <label for="aValue">a = <input type="text" name="aValue" /></label>
+            <label for="aValue"
+              >a =
+              <input
+                type="text"
+                name="aValue"
+                placeholder="Порядок который ищем"
+            /></label>
           </div>
 
           <div class="field"><div name="nValue">n = p - 1</div></div>
 
           <div class="field">
-            <label for="tValue">t = <input type="text" name="tValue" /></label>
+            <label for="tValue"
+              >t =
+              <input
+                type="text"
+                name="tValue"
+                placeholder="Кол-во факторизации"
+            /></label>
           </div>
 
           <div class="field">
@@ -98,6 +115,6 @@
         <div id="result" class="result"></div>
       </main>
     </div>
-    <script src="./main.js"></script>
+    <script src="./js/main.js" type="module"></script>
   </body>
 </html>

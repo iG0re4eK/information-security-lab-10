@@ -1,8 +1,12 @@
+import { RobinMiller } from "./robinMiller.js";
+
 const form = document.getElementById("form");
 const result = document.getElementById("result");
+const robinMillerMethod = new RobinMiller();
 
 form.addEventListener("submit", (e) => {
   e.preventDefault();
+  clearErrors();
 
   const inputs = form.querySelectorAll('input[type="text"]');
   inputs.forEach((input) => {
@@ -98,13 +102,75 @@ form.addEventListener("submit", (e) => {
 
   if (hasError) return;
 
-  if (a >= p) {
-    showError(form.querySelector('[name="aValue"]'), "a должно быть меньше p");
+  if (!robinMillerMethod.robinMiller(p)) {
+    showError(
+      form.querySelector('[name="pValue"]'),
+      "Должно быть простым числом"
+    );
     return;
   }
 
-  if (g >= p) {
-    showError(form.querySelector('[name="gValue"]'), "g должно быть меньше p");
+  if (g <= 0 || g >= p) {
+    showError(
+      form.querySelector('[name="gValue"]'),
+      `g должно быть в диапазоне: 1 < g < ${p}`
+    );
+    return;
+  }
+
+  if (a <= 0 || a >= p) {
+    showError(
+      form.querySelector('[name="aValue"]'),
+      `a должно быть в диапазоне: 0 < a < ${p}`
+    );
+    return;
+  }
+
+  if (t <= 0) {
+    showError(
+      form.querySelector('[name="tValue"]'),
+      "t должно быть положительным числом"
+    );
+    return;
+  }
+
+  if (t > p - 1) {
+    showError(
+      form.querySelector('[name="tValue"]'),
+      `t не может быть больше ${p - 1} (p-1)`
+    );
+    return;
+  }
+
+  if (c <= 0) {
+    showError(
+      form.querySelector('[name="cValue"]'),
+      "c должно быть положительным числом"
+    );
+    return;
+  }
+
+  if (c > t) {
+    showError(
+      form.querySelector('[name="cValue"]'),
+      `c не может быть больше t`
+    );
+    return;
+  }
+
+  if (c > p - 1) {
+    showError(
+      form.querySelector('[name="cValue"]'),
+      `Не может быть больше ${p - 1}`
+    );
+    return;
+  }
+
+  if (!isGenerator(g, p)) {
+    showError(
+      form.querySelector('[name="gValue"]'),
+      `Может не быть генератором для ${p}`
+    );
     return;
   }
 
@@ -116,6 +182,31 @@ form.addEventListener("submit", (e) => {
   clearErrors();
   init(p, g, a, n, t, c);
 });
+
+function isGenerator(g, p) {
+  const n = p - 1;
+  const modPow = (base, exp, mod) => {
+    let result = 1;
+    base = base % mod;
+    while (exp > 0) {
+      if (exp % 2 === 1) result = (result * base) % mod;
+      base = (base * base) % mod;
+      exp = Math.floor(exp / 2);
+    }
+    return result;
+  };
+
+  if (modPow(g, n, p) !== 1) return false;
+
+  for (let i = 2; i * i <= n; i++) {
+    if (n % i === 0) {
+      if (modPow(g, i, p) === 1 || modPow(g, n / i, p) === 1) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
 
 function validInput(value) {
   if (value === null || value === undefined) {
@@ -341,12 +432,6 @@ function modInverse(a, m) {
   return -1;
 }
 
-function egcd(a, b) {
-  if (b === 0) return [a, 1, 0];
-  const [g, x1, y1] = egcd(b, a % b);
-  return [g, y1, x1 - Math.floor(a / b) * y1];
-}
-
 function solveLinearSystem(modulo, matrix, vector, s, g) {
   const n = matrix.length;
   const m = matrix[0].length;
@@ -503,7 +588,7 @@ function step7(n, a, g, p) {
   return { k, ag_k };
 }
 
-function step8(s, n, a, g, p, n) {
+function step8(s, n, a, g, p) {
   let result = [];
   let { k, ag_k } = step7(n, a, g, p);
 
@@ -521,7 +606,7 @@ function step8(s, n, a, g, p, n) {
     result.push({ k: k, ag_k: ag_k, factorBase: factorBaseResult });
     decomposefactorBaseAGKSection(result);
   } else {
-    return step8(s, n, a, g, p, n);
+    return step8(s, n, a, g, p);
   }
 
   result.forEach((el) => {
@@ -531,7 +616,6 @@ function step8(s, n, a, g, p, n) {
       .map(([prime, power]) => `${prime}^${power}`)
       .join(" * ");
     text += factors;
-    console.log(text);
   });
 
   return result;
@@ -558,7 +642,6 @@ function step9(resultStep8, s, logs, g, a, n, p) {
     if (log_a < 0) log_a += n;
 
     logarithmicOfPartsFinalSection(s, row, k, log_a, logs, n, g, a, p);
-    console.log(`log_${g}(${a}) ≡ ${rightSide} - ${k} ≡ ${log_a} (mod ${n})`);
   });
 
   return log_a;
@@ -651,12 +734,6 @@ function findAllEquationSection(msg) {
 }
 
 function matrixVectorSection(s, matrix, vector, g) {
-  matrix.forEach((row) => {
-    console.log(row.join("\t"));
-  });
-
-  console.log(vector.join("\n"));
-
   const matrixVectorTable = document.createElement("table");
   const matrixVectorTbody = document.createElement("tbody");
   const matrixVectorThead = document.createElement("thead");
@@ -808,7 +885,7 @@ function init(p, g, a, n, t, c) {
     return init(p, g, a, n, t, c);
   }
 
-  let resultStep8 = step8(s, n, a, g, p, n);
+  let resultStep8 = step8(s, n, a, g, p);
 
   const x = step9(resultStep8, s, logs, g, a, n, p);
 
