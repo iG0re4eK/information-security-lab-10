@@ -521,8 +521,6 @@ function solveLinearSystem(modulo, matrix, vector, s, g) {
     }
   }
 
-  matrixVectorSection(s, A, b, g);
-
   const solution = new Array(m).fill(0);
   const hasSolution = new Array(m).fill(false);
 
@@ -548,6 +546,8 @@ function solveLinearSystem(modulo, matrix, vector, s, g) {
       hasSolution[i] = true;
     }
   }
+
+  matrixVectorSection(s, A, b, g);
 
   return { solution, hasSolution };
 }
