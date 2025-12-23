@@ -15,7 +15,7 @@ startPageBtn.addEventListener("click", () => {
 form.addEventListener("submit", (e) => {
   e.preventDefault();
   clearErrors();
-
+  result.innerHTML = "";
   const inputs = form.querySelectorAll('input[type="text"]');
   inputs.forEach((input) => {
     input.classList.remove("error");
